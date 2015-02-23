@@ -109,7 +109,7 @@ ncol(trainSet)</code></pre>
 </div>
 <div id="model" class="section level1">
 <h1>Model</h1>
-<p>I decided to use the Random Forest model, since it was mentioned in lectures that it was highly accurate. After training the model, the obtained out-of-bag (oob) error estimate was 0.48% - so the expected out of sample error is 0.0048.</p>
+<p>I decided to use the Random Forest model, since it was mentioned in lectures that it was highly accurate. According to the <a href="https://www.stat.berkeley.edu/~breiman/RandomForests/cc_home.htm#ooberr">RandomForests documentation</a> there’s no need for cross-validation, since the error is estimated internally (through the out-of-bag statistic). After training the model, the obtained out-of-bag (oob) error estimate was 0.48% - so the expected out of sample error was 0.0048.</p>
 <pre class="r"><code>modelFit &lt;- randomForest(classe ~ ., data=trainSet)
 modelFit</code></pre>
 <pre><code>## 

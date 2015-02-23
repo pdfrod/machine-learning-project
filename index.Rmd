@@ -48,14 +48,14 @@ ncol(trainSet)
 
 # Model
 
-I decided to use the Random Forest model, since it was mentioned in lectures that it was highly accurate. After training the model, the obtained out-of-bag (oob) error estimate was 0.48% - so the expected out of sample error is 0.0048.
+I decided to use the Random Forest model, since it was mentioned in lectures that it was highly accurate. According to the [RandomForests documentation](https://www.stat.berkeley.edu/~breiman/RandomForests/cc_home.htm#ooberr) there's no need for cross-validation, since the error is estimated internally (through the out-of-bag statistic). After training the model, the obtained out-of-bag (oob) error estimate was 0.48% - so the expected out of sample error was 0.0048.
 
 ```{r}
 modelFit <- randomForest(classe ~ ., data=trainSet)
 modelFit
 ```
 
-Indeed after using the model to predict the outcome of the test set, I got an error of 0.0041 (1 - 0.9959) which is pretty close to the estimated 0.0048.
+Indeed after using the model to predict the outcome of the test set, I got an error of 0.0041 (1 - 0.9959) which is pretty close to the estimated 0.0048. 
 
 ```{r}
 predictions <- predict(modelFit, newdata=testSet)
