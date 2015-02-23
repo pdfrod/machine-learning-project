@@ -1,0 +1,75 @@
+# Data loading
+
+From inspecting the data I noticed that some columns had invalid, blank or NA values. Therefore when reading the data, I normalized all these cases to NA.
+
+```{r, results='hide', message=FALSE}
+library(caret)
+library(randomForest)
+
+data <- read.csv("pml-training.csv", na.strings=c("", " ", "NA", "#DIV/0!"))
+```
+
+Then, I split the data between training and testing set.
+
+```{r, results='hide'}
+set.seed(3433)
+inTrain <- createDataPartition(data$classe, p=0.75, list=FALSE)
+trainSet <- data[inTrain,]
+testSet <- data[-inTrain,]
+```
+
+# Predictors selection
+
+The first 7 columns of the data seem to be meta-data of the observation, thus not useful information for predicting.
+
+```{r}
+head(data[,(1:7)])
+```
+
+I noticed there were multiple columns for which more than 95% of the values were NA, so I wrote an utility function to detect these cases.
+
+```{r, results='hide'}
+# receives a column name and returns TRUE if the column consists mostly of NAs
+is.irrelevant.col <- function(col) {
+  t <- data[is.na(data[col]),]
+  p <- nrow(t) / nrow(data)
+  p > 0.96
+}
+```
+
+After removing these columns, I ended up with 53 columns (52 predictors + 1 outcome).
+```{r}
+cols.to.remove <- c("X", "user_name", "raw_timestamp_part_1", "raw_timestamp_part_2",
+                    "cvtd_timestamp", "new_window", "num_window",
+                    Filter(is.irrelevant.col, colnames(data)))
+trainSet <- trainSet[, !(names(trainSet) %in% cols.to.remove)]
+ncol(trainSet)
+```
+
+# Model
+
+I decided to use the Random Forest model, since it was mentioned in lectures that it was highly accurate. After training the model, the obtained out-of-bag (oob) error estimate was 0.48% - so the expected out of sample error is 0.0048.
+
+```{r}
+modelFit <- randomForest(classe ~ ., data=trainSet)
+modelFit
+```
+
+Indeed after using the model to predict the outcome of the test set, I got an error of 0.0041 (1 - 0.9959) which is pretty close to the estimated 0.0048.
+
+```{r}
+predictions <- predict(modelFit, newdata=testSet)
+confusionMatrix(predictions, testSet$classe)
+```
+
+# Test cases
+
+The quotes around integers was causing problems when parsing "pml-testing.csv", so I manually removed them. Then I applied the model to the test cases, which gave the following predictions:
+
+```{r}
+validSet <- read.csv("pml-testing.csv", na.strings=c("", " ", "NA", "#DIV/0!"),
+                     colClasses=sapply(data, class))
+validSet<- validSet[, !(names(validSet) %in% cols.to.remove)]
+predictions <- predict(modelFit, newdata=validSet)
+predictions
+```
